@@ -1,0 +1,1 @@
+# Word2Vec trainer package for TF2
