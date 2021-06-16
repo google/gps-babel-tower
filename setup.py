@@ -17,6 +17,8 @@ import re
 import shutil
 
 from setuptools import find_packages, setup
+from setuptools.command.install import install
+from subprocess import getoutput
 
 
 install_requires = [
@@ -40,23 +42,22 @@ install_requires = [
   'keybert~=0.3.0',
   'jieba~=0.42.1',
   'nagisa~=0.2.7',
-  'unidic-lite~=1.0.8',
-  'en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.0.0/en_core_web_sm-3.0.0.tar.gz#egg=en_core_web_sm',
+  'rake-ja~=0.0.1',
 ]
 
 
 setup(
-    name="gps-babel-tower",
-    version="0.0.1", # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
-    author="Chi Zhang",
-    author_email="chii@google.com",
-    description="Babel Tower NLP Platform",
-    long_description=open("README.md", "r", encoding="utf-8").read(),
-    long_description_content_type="text/markdown",
-    license="Apache",
-    package_dir={"": "src"},
-    packages=find_packages("src"),
-    extras_require={},
-    python_requires=">=3.6.0",
-    install_requires=install_requires,
+  name="gps-babel-tower",
+  version="0.0.2", # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+  author="Chi Zhang",
+  author_email="chii@google.com",
+  description="Babel Tower NLP Library",
+  long_description=open("README.md", "r", encoding="utf-8").read(),
+  long_description_content_type="text/markdown",
+  license="Apache",
+  package_dir={"": "src"},
+  packages=find_packages("src"),
+  extras_require={},
+  python_requires=">=3.6.0",
+  install_requires=install_requires
 )

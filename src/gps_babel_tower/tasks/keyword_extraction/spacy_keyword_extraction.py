@@ -16,18 +16,26 @@
 # Lint as: python3
 """Keywords extraction component."""
 import re
+import logging
 import string
 
 import nltk
 from nltk.corpus import stopwords
 import spacy
+import spacy.cli.download
 
 
 class KeywordExtraction:
 
   def __init__(self):
+    try:
+      self.nlp = spacy.load('en_core_web_sm')
+    except:
+      logging.exception('load model failed, download automatically') 
+      spacy.cli.download('en_core_web_sm')
+      self.nlp = spacy.load('en_core_web_sm')
+    
     nltk.download('stopwords')
-    self.nlp = spacy.load('en_core_web_sm')
     self.stopwords_en = set(stopwords.words('english'))
 
   def tokenize(self, text, stop_words=None, word_normalize_map=None, mode=None):

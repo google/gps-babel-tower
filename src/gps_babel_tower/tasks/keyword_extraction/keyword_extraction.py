@@ -18,7 +18,7 @@ from keybert import KeyBERT
 from gps_babel_tower.tasks.lang_detect import LangDetect
 from gps_babel_tower.tasks.word_seg import WordSegment
 import logging
-import unidic_lite
+import rake_ja
 
 
 class KeywordExtraction:
@@ -28,6 +28,9 @@ class KeywordExtraction:
     self.max_len = max_len
     self.langdetect = LangDetect()
     self.word_seg = WordSegment()
+    
+    self.ja_tok = rake_ja.Tokenizer()
+    self.ja_rake = rake_ja.JapaneseRake()
     
     if kw_model == 'rake':
       self.model = Rake(min_length=min_len, max_length=max_len)
@@ -44,6 +47,11 @@ class KeywordExtraction:
       lang = self.langdetect.get_language(text)
 
     if self.kw_model == 'rake':
+      if lang == 'ja':
+        tokens = self.ja_tok.tokenize(text)
+        self.ja_rake.extract_keywords_from_text(tokens)
+        keywords = self.ja_rake.get_ranked_phrases()
+      else:
         self.model.extract_keywords_from_text(text)
         keywords = self.model.get_ranked_phrases()
     elif self.kw_model == 'keybert':
