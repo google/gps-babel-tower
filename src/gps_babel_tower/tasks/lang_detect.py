@@ -21,7 +21,7 @@ import logging
 
 
 class LangDetect:
-  FAST_TEXT_MODEL_URL = 'https://storage.googleapis.com/babel-tower-exp/model/fasttext/langdetect/lid.176.ftz'
+  FAST_TEXT_MODEL_URL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz'
   
   def __init__(self, model_path = '/tmp/lid.176.ftz'):
     if not os.path.exists(model_path):
