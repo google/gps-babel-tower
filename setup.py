@@ -48,7 +48,7 @@ install_requires = [
 
 setup(
   name="gps-babel-tower",
-  version="0.0.2", # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+  version="0.0.3", # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
   author="Chi Zhang",
   author_email="chii@google.com",
   description="Babel Tower NLP Library",
