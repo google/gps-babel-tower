@@ -1,10 +1,11 @@
-# Copyright 2021 Google LLC
+# coding=utf-8
+# Copyright 2021 Google LLC..
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,10 +29,10 @@ class KeywordExtraction:
     self.max_len = max_len
     self.langdetect = LangDetect()
     self.word_seg = WordSegment()
-    
+
     self.ja_tok = rake_ja.Tokenizer()
     self.ja_rake = rake_ja.JapaneseRake()
-    
+
     if kw_model == 'rake':
       self.model = Rake(min_length=min_len, max_length=max_len)
     elif kw_model == 'keybert':
@@ -40,8 +41,8 @@ class KeywordExtraction:
       self.model = spacy_keyword_extraction.KeywordExtraction()
     else:
       raise Exception(f'Unsupported keyword extraction model type: {kw_model}, can only be rake|keybert|spacy_bigram')
-      
-  
+
+
   def extract_keywords(self, text, lang=None, max_results=-1):
     if not lang:
       lang = self.langdetect.get_language(text)
@@ -64,5 +65,5 @@ class KeywordExtraction:
         logging.error(f'spacy_bigram only supports English! language detected: {lang} for text {text}')
         return []
       keywords = self.model.tokenize(text)
-      
+
     return keywords[:max_results]

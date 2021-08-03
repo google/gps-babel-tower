@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 Google LLC..
+# Copyright 2021 Google LLC..
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ class KeywordExtraction:
     try:
       self.nlp = spacy.load('en_core_web_sm')
     except:
-      logging.exception('load model failed, download automatically') 
+      logging.exception('load model failed, download automatically')
       spacy.cli.download('en_core_web_sm')
       self.nlp = spacy.load('en_core_web_sm')
-    
+
     nltk.download('stopwords')
     self.stopwords_en = set(stopwords.words('english'))
 
@@ -77,15 +77,13 @@ class KeywordExtraction:
                 if token.dep_ in ('nsubj', 'nsubjpass'):
                   root_word = word
                   root_word_head_idx = token.head.idx
-                elif (root_word and
-                      root_word_head_idx == token.head.idx and
+                elif (root_word and root_word_head_idx == token.head.idx and
                       token.dep_ == 'acomp'):
                   words = word + ' ' + root_word
               elif token.dep_ in ('compound', 'advcl', 'nsubj', 'nsubjpass',
                                   'amod'):
                 words = word + ' ' + self.normalize_word(
-                    word_normalize_map,
-                    token.head)
+                    word_normalize_map, token.head)
         if words is not None:
           lda_tokens.append(words)
     return lda_tokens
@@ -123,4 +121,3 @@ class KeywordExtraction:
     else:
       normalized_word = token.lemma_
     return normalized_word
-

@@ -1,10 +1,11 @@
-# Copyright 2021 Google LLC
+# coding=utf-8
+# Copyright 2021 Google LLC..
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,9 +16,9 @@
 from gps_babel_tower.tasks.language_detection import LanguageDetection
 
 examples = [
-'Hi, this is Jim.',
-'你好呀，我是巴巴',
-'おはよう、私わ田中です。',
+    'Hi, this is Jim.',
+    '你好呀，我是巴巴',
+    'おはよう、私わ田中です。',
 ]
 
 l = LanguageDetection()

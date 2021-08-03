@@ -1,10 +1,11 @@
-# Copyright 2021 Google LLC
+# coding=utf-8
+# Copyright 2021 Google LLC..
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,18 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from google.cloud import bigquery
 import google.api_core.exceptions
 import tensorflow as tf
 import csv
 import json
 import logging
-      
-      
+
+
 def read_data(gcs_path=None, bq_table=None, bq_sql=None, limit=None):
   """Read data from BigQuery/GCS.
-  
+
   If GCS path is in json or csv extensions, parse them to python objects.
   """
   if bq_table or bq_sql:
@@ -55,7 +55,7 @@ def read_data(gcs_path=None, bq_table=None, bq_sql=None, limit=None):
               yield json.loads(line.strip())
             else:
               break
-          
+
 
 def iterate_data(batch_size, **kwargs):
   """Iterate data in batches from BigQuery/GCS."""
@@ -65,10 +65,10 @@ def iterate_data(batch_size, **kwargs):
     if len(batch) == batch_size:
       yield batch
       batch = []
-      
+
   if batch:
     yield batch
-    
+
 
 def extract_bq_to_gcs(sql, tmp_table_id, gcs_path):
   client = bigquery.Client()
@@ -90,13 +90,13 @@ def extract_bq_to_gcs(sql, tmp_table_id, gcs_path):
 
   client.delete_table(tmp_table_id, not_found_ok=True)
   logging.info(f'Loaded data to {gcs_path}.')
-    
+
 
 def load_data_gcs_to_bq(gcs_path, bq_table,
                         source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
                         write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE):
   client = bigquery.Client()
-  
+
   # bq_table is `project.dataset.table`, remove the table part to get dataset id.
   dataset_id = '.'.join(bq_table.split('.')[:-1])
   dataset = bigquery.Dataset(dataset_id)
@@ -106,12 +106,12 @@ def load_data_gcs_to_bq(gcs_path, bq_table,
   except google.api_core.exceptions.Conflict:
     # ignore if already exists
     logging.info('dataset already exists %s', dataset_id)
-  
+
   job_config = bigquery.LoadJobConfig(
     autodetect=True,
     source_format=source_format,
     write_disposition=write_disposition,
-  ) 
+  )
   job = client.load_table_from_uri(
       gcs_path, bq_table, job_config=job_config
   )
