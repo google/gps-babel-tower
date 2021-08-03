@@ -39,6 +39,11 @@ print(f'loaded data from {gcs_path} to {bq_table}')
 print(f'Iterating from {gcs_path}')
 for batch in data_util.iterate_data(gcs_path=gcs_path, batch_size=7, limit=50):
   print('batch: size:', len(batch), batch)
+
+gcs_glob_path = 'gs://{gcs_bucket}/tmp/*.json'
+print(f'Iterating from {gcs_glob_path}')
+for batch in data_util.iterate_data(gcs_path=gcs_glob_path, batch_size=7, limit=50):
+  print('batch: size:', len(batch), batch)
   
 print(f'Iterating from {bq_table}')
 for batch in data_util.iterate_data(bq_table=bq_table, batch_size=6, limit=50):

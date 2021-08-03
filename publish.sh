@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pip3 install build twine
+
 set -euo pipefail
 
 python3 -m build

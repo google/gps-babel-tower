@@ -40,20 +40,21 @@ def read_data(gcs_path=None, bq_table=None, bq_sql=None, limit=None):
       else:
         break
   elif gcs_path:
-    with tf.io.gfile.GFile(gcs_path) as file:
-      if gcs_path.endswith('.csv'):
-        csv_reader = csv.DictReader(file)
-        for idx, r in enumerate(csv_reader):
-          if limit is not None and idx <= limit:
-            yield r
-          else:
-            break
-      elif gcs_path.endswith('.json'):
-        for idx, line in enumerate(file):
-          if limit is not None and idx <= limit:
-            yield json.loads(line.strip())
-          else:
-            break
+    for path in tf.io.gfile.glob(gcs_path):
+      with tf.io.gfile.GFile(path) as file:
+        if gcs_path.endswith('.csv'):
+          csv_reader = csv.DictReader(file)
+          for idx, r in enumerate(csv_reader):
+            if limit is not None and idx <= limit:
+              yield r
+            else:
+              break
+        elif gcs_path.endswith('.json'):
+          for idx, line in enumerate(file):
+            if limit is not None and idx <= limit:
+              yield json.loads(line.strip())
+            else:
+              break
           
 
 def iterate_data(batch_size, **kwargs):
@@ -67,6 +68,28 @@ def iterate_data(batch_size, **kwargs):
       
   if batch:
     yield batch
+    
+
+def extract_bq_to_gcs(sql, tmp_table_id, gcs_path):
+  client = bigquery.Client()
+
+  query_job = client.query(
+      sql,
+      job_config=bigquery.QueryJobConfig(
+          destination=tmp_table_id,
+          write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE))
+  query_job.result()
+  logging.info(f'extract data using sql: {sql}')
+
+  extract_job = client.extract_table(
+      bigquery.TableReference.from_string(tmp_table_id),
+      gcs_path,
+      job_config=bigquery.ExtractJobConfig(
+          destination_format=bigquery.DestinationFormat.NEWLINE_DELIMITED_JSON))
+  extract_job.result()  # Waits for job to complete.
+
+  client.delete_table(tmp_table_id, not_found_ok=True)
+  logging.info(f'Loaded data to {gcs_path}.')
     
 
 def load_data_gcs_to_bq(gcs_path, bq_table,
