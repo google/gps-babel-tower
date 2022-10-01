@@ -21,7 +21,7 @@ from setuptools import find_packages, setup
 from setuptools.command.install import install
 from subprocess import getoutput
 
-install_requires = [
+_deps = [
     'nltk>=3.2.5',
     'transformers>=4.6.1',
     'tensorflow>=2.4.1',
@@ -43,11 +43,34 @@ install_requires = [
     'jieba>=0.42.1',
     'nagisa>=0.2.7',
     'rake-ja>=0.0.1',
+    'scipy>=1.7.0',
+    'ftfy>=6.0.0', 
 ]
+
+# this is a lookup table with items like:
+#
+# tokenizers: "huggingface-hub==0.8.0"
+# packaging: "packaging"
+#
+# some of the values are versioned whereas others aren't.
+deps = {b: a for a, b in (re.findall(r"^(([^!=<>~]+)(?:[!=<>~].*)?$)", x)[0] for x in _deps)}
+
+def deps_list(*pkgs):
+    return [deps[pkg] for pkg in pkgs]
+
+extras = {}
+extras['torch'] = deps_list('torch')
+extras['tensorflow'] = deps_list('tensorflow')
+extras['keyword_extraction'] = deps_list('rake-nltk', 'keybert', 'jieba', 'nagisa', 'rake-ja')
+extras['langdetect'] = deps_list('langid', 'fasttext', 'pycld3', 'langdetect')
+extras['nlp'] = deps_list('transformers', 'spacy', 'nltk', 'sentencepiece', 'datasets', 'faiss-cpu') + extras['keyword_extraction'] + extras['langdetect']
+extras['google'] = deps_list('google-cloud-translate', 'google-cloud-language', 'gspread', 'gspread-dataframe')
+extras['image'] = deps_list('diffusers', 'transformers', 'ftfy', 'scipy')
+
 
 setup(
     name='gps-babel-tower',
-    version='0.0.6',  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version='0.1.0',  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     author='Chi Zhang',
     author_email='chii@google.com',
     description='Babel Tower NLP Library',
@@ -56,6 +79,6 @@ setup(
     license='Apache',
     package_dir={'': 'src'},
     packages=find_packages('src'),
-    extras_require={},
+    extras_require=extras,
     python_requires='>=3.6.0',
-    install_requires=install_requires)
+    install_requires=[])

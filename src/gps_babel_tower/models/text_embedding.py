@@ -130,3 +130,8 @@ def l2_distance(v1, v2):
      Returns:  (n1, n2)  l2 distances
   """
   return tf.norm(tf.expand_dims(v1, 1) - tf.expand_dims(v2, 0), axis=-1)
+
+
+__all__ = ['EncoderType', 'TextEncoder',
+           'batch_similarity',
+           'cosine_similarity', 'l2_distance']
