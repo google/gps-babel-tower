@@ -44,7 +44,8 @@ _deps = [
     'nagisa>=0.2.7',
     'rake-ja>=0.0.1',
     'scipy>=1.7.0',
-    'ftfy>=6.0.0', 
+    'ftfy>=6.0.0',
+    'diffusers>=0.3.0',
 ]
 
 # this is a lookup table with items like:
