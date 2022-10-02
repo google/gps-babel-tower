@@ -277,6 +277,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
             timesteps = torch.tensor([timesteps] * batch_size, dtype=torch.long, device=self.device)
         # add noise to latents using the timesteps
         latents = self.scheduler.add_noise(latents, noise, timesteps)
+        latents = latents.float()  # fix latent type changed to double bug
         return latents
 
     @torch.no_grad()
@@ -405,6 +406,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
                 latents = self.encode_image(image=init_image,
                                             encode_type='sample',
                                             generator=generator)
+            print('after encode image:', latents.dtype)
             latents = torch.cat([latents] * batch_size)
             init_latents_orig = latents
             noise = torch.randn(latents.shape, generator=generator, device=self.device)
@@ -465,7 +467,6 @@ class StableDiffusionPipeline(DiffusionPipeline):
                 # the model input needs to be scaled to match the continuous ODE formulation in K-LMS
                 latent_model_input = latent_model_input / ((sigma**2 + 1) ** 0.5)
             
-            print('latent:', latent_model_input.dtype)
             # predict the noise residual
             noise_pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings).sample
 
