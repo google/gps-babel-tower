@@ -406,7 +406,6 @@ class StableDiffusionPipeline(DiffusionPipeline):
                 latents = self.encode_image(image=init_image,
                                             encode_type='sample',
                                             generator=generator)
-            print('after encode image:', latents.dtype)
             latents = torch.cat([latents] * batch_size)
             init_latents_orig = latents
             noise = torch.randn(latents.shape, generator=generator, device=self.device)
