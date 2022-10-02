@@ -228,6 +228,8 @@ class StableDiffusionPipeline(DiffusionPipeline):
     def preprocess_mask(
         self,
         mask: Union[str, torch.FloatTensor, PIL.Image.Image],
+        width=None,
+        height=None,
     ):
         if isinstance(mask, torch.FloatTensor):
             # raw mask
@@ -238,7 +240,9 @@ class StableDiffusionPipeline(DiffusionPipeline):
             mask = PIL.Image.open(mask)
         
         mask = mask.convert("L")
-        w, h = mask.size
+        w, h = width, height
+        if not w or not h:
+          w, h = mask.size
         w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
         mask = mask.resize((w // 8, h // 8), resample=PIL.Image.NEAREST)
         mask = np.array(mask).astype(np.float32) / 255.0 # shape: (w//8, h//8)
@@ -405,7 +409,9 @@ class StableDiffusionPipeline(DiffusionPipeline):
             else:
                 latents = self.encode_image(image=init_image,
                                             encode_type='sample',
-                                            generator=generator)
+                                            generator=generator,
+                                            width=width,
+                                            height=height)
             latents = torch.cat([latents] * batch_size)
             init_latents_orig = latents
             noise = torch.randn(latents.shape, generator=generator, device=self.device)
@@ -434,7 +440,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
         latents = latents.to(self.device)
         
         if mask_image is not None:
-            mask = self.preprocess_mask(mask_image)
+            mask = self.preprocess_mask(mask_image, width=width, height=height)
             mask = torch.cat([mask] * batch_size)
             # check sizes
             if not mask.shape == latents.shape:
