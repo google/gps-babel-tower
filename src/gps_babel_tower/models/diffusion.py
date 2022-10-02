@@ -464,7 +464,8 @@ class StableDiffusionPipeline(DiffusionPipeline):
                 sigma = self.scheduler.sigmas[t_index]
                 # the model input needs to be scaled to match the continuous ODE formulation in K-LMS
                 latent_model_input = latent_model_input / ((sigma**2 + 1) ** 0.5)
-
+            
+            print('latent:', latent_model_input.dtype)
             # predict the noise residual
             noise_pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings).sample
 
