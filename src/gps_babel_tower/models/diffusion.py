@@ -194,7 +194,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
         else:
             w, h = image.size
             w, h = map(lambda x: x - x % 32, (w, h))
-        image = image.resize((w, h), resample=PIL.Image.Resampling.LANCZOS)
+        image = image.resize((w, h), resample=PIL.Image.LANCZOS)
         
         # convert from RGB image (batch_size, w, h, channel) value range(0, 255)
         # to shape (batch_size, channel, w, h) value range (-1, 1)
@@ -240,7 +240,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
         mask = mask.convert("L")
         w, h = mask.size
         w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
-        mask = mask.resize((w // 8, h // 8), resample=PIL.Image.Resampling.NEAREST)
+        mask = mask.resize((w // 8, h // 8), resample=PIL.Image.NEAREST)
         mask = np.array(mask).astype(np.float32) / 255.0 # shape: (w//8, h//8)
         mask = np.tile(mask, (self.unet.in_channels, 1, 1)) # shape: (4, w//8, h//8), same as latents shape because mask needs to multiply with latents
         mask = mask[None].transpose(0, 1, 2, 3)  # what does this step do?
