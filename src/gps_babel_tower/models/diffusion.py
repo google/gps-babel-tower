@@ -487,6 +487,7 @@ class StableDiffusionPipeline(DiffusionPipeline):
                     init_latents_proper = self.scheduler.add_noise(init_latents_orig, noise, t)
                 
             if mask_image is not None:
+                init_latents_proper = init_latents_proper.float()  # fix strange float64 bug
                 latents = (init_latents_proper * mask) + (latents * (1 - mask))
         
         image = self.decode_latents(latents, output_type='raw')
