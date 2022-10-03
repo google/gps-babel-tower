@@ -46,6 +46,7 @@ _deps = [
     'scipy>=1.7.0',
     'ftfy>=6.0.0',
     'diffusers>=0.3.0',
+    'sacremoses>=0.0.53',
 ]
 
 # this is a lookup table with items like:
@@ -62,9 +63,9 @@ def deps_list(*pkgs):
 extras = {}
 extras['torch'] = deps_list('torch')
 extras['tensorflow'] = deps_list('tensorflow')
-extras['keyword_extraction'] = deps_list('rake-nltk', 'keybert', 'jieba', 'nagisa', 'rake-ja')
 extras['langdetect'] = deps_list('langid', 'fasttext', 'pycld3', 'langdetect')
-extras['nlp'] = deps_list('transformers', 'spacy', 'nltk', 'sentencepiece', 'datasets', 'faiss-cpu') + extras['keyword_extraction'] + extras['langdetect']
+extras['keyword_extraction'] = deps_list('rake-nltk', 'keybert', 'jieba', 'nagisa', 'rake-ja') + extras['langdetect']
+extras['nlp'] = deps_list('transformers', 'spacy', 'nltk', 'sentencepiece', 'datasets', 'faiss-cpu', 'sacremoses') + extras['keyword_extraction'] + extras['langdetect']
 extras['google'] = deps_list('google-cloud-translate', 'google-cloud-language', 'gspread', 'gspread-dataframe')
 extras['image'] = deps_list('diffusers', 'transformers', 'ftfy', 'scipy')
 
