@@ -72,7 +72,7 @@ extras['image'] = deps_list('diffusers', 'transformers', 'ftfy', 'scipy')
 
 setup(
     name='gps-babel-tower',
-    version='0.1.0',  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version='0.1.1',  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     author='Chi Zhang',
     author_email='chii@google.com',
     description='Babel Tower NLP Library',

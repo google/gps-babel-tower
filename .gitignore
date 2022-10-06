@@ -3,3 +3,4 @@ __pycache__/
 tmp/
 *.egg-info
 .DS_Store
+docker/models
