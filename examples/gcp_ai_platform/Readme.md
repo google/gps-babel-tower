@@ -30,6 +30,6 @@ nvidia-docker run gcr.io/$(gcloud config get project)/babel_example:v1 python /a
 # Submitting to AI Platform
 Use the following command:
 ```
-PROJECT_ID=$(gcloud config get project)  ./run_on_ai_platform.sh --args="python /app/text2image.py --output_path=gs://gps-babel-tower/output"
+PROJECT_ID=$(gcloud config get project)  ./run_on_ai_platform.sh --args="python,/app/text2image.py,--output_path=gs://gps-babel-tower/output"
 ```
 After submitting the job, you can see the job status in the Vertex AI training page for custom jobs.

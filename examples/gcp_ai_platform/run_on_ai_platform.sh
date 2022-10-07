@@ -22,6 +22,7 @@ REGION=us-west1
 JOB_ID=babel_example_$(date +"%Y%m%d_%H%M%S")
 DOCKER_IMAGE="gcr.io/$PROJECT_ID/babel_example:v1"
 
+# reference https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
 gcloud ai custom-jobs create \
   --region=$REGION \
   --project=$PROJECT_ID \

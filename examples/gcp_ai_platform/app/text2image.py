@@ -41,7 +41,7 @@ def main(args):
       image.save(tmp_filename)
       
       worker_blob = storage.Blob.from_string(f'{args.output_path}/image_{i}.png', client=client)
-      print(f'uploading {worker_blob} => {tmp_filename}')
+      print(f'uploading {tmp_filename} => {worker_blob}')
       worker_blob.upload_from_filename(tmp_filename)
     else:
       image.save(os.path.join(args.output_path, f'image_{i}.png'))
