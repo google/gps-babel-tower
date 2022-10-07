@@ -16,9 +16,9 @@ RUN wget \
 
 SHELL ["/bin/bash", "--login", "-c"]
 # Create the environment:
-RUN conda create -n python37 python=3.7
+RUN conda create -n babel python=3.7
 # Make RUN commands use the new environment:
-SHELL ["conda", "run", "-n", "python37", "/bin/bash", "-c"]
+SHELL ["conda", "run", "-n", "babel", "/bin/bash", "-c"]
 
 # force no cache for all command below
 # ARG CACHEBUST=1
