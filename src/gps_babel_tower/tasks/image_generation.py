@@ -15,31 +15,83 @@
 
 from typing import List, Optional, Union, Mapping
 import torch
-from gps_babel_tower.models.diffusion import StableDiffusionPipeline
+from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionInpaintPipeline
+from diffusers.pipelines.stable_diffusion import StableDiffusionPipelineOutput
 from diffusers.schedulers import LMSDiscreteScheduler
 import PIL
 
+from gps_babel_tower.utils.image_util import preprocess_image
+from gps_babel_tower.models.image_interpolation import InterpolationPipeline
+from gps_babel_tower.models.image2image import StableDiffusionImageEmbedPipeline
 
-class ImageGenerator:
-  def __init__(self, pipe=None, generator=None):
+
+class Text2ImageGenerator:
+  def __init__(self, pipe=None, seed=None, safety_check=False):
+    # random seed for reproducibility
+    self.seed = seed
+    
+    pipe_config_keys = [
+      'vae', 'tokenizer', 'unet', 'scheduler', 'text_encoder',
+      'safety_checker', 'feature_extractor',
+    ]
+    pipe_config_dict = {
+      k: getattr(pipe, k) for k in pipe_config_keys
+    }
+    
+    if not safety_check:
+      pipe_config_dict['safety_checker'] = None
+      pipe_config_dict['feature_extractor'] = None
+      
+    self.pipe_config_dict = pipe_config_dict
     self.pipe = pipe
-    # random number generator for reproducibility
-    self.generator = None   
+    
+  @property
+  def text2image_pipe(self):
+    if not hasattr(self, '_text2image_pipe'):
+      print('Init StableDiffusionPipeline')
+      self._text2image_pipe = StableDiffusionPipeline(**self.pipe_config_dict)
+    return self._text2image_pipe
+  
+  @property
+  def image2image_pipe(self):
+    if not hasattr(self, '_image2image_pipe'):
+      print('Init StableDiffusionImg2ImgPipeline')
+      self._image2image_pipe = StableDiffusionImg2ImgPipeline(**self.pipe_config_dict)
+    return self._image2image_pipe
+  
+  @property
+  def inpaint_pipe(self):
+    if not hasattr(self, '_inpaint_pipe'):
+      print('init StableDiffusionInpaintPipeline')
+      self._inpaint_pipe = StableDiffusionInpaintPipeline(**self.pipe_config_dict)
+    return self._inpaint_pipe
+  
+  @property
+  def interpolation_pipe(self):
+    if not hasattr(self, '_interpolation_pipe'):
+      print('init StableDiffusionInpaintPipeline')
+      self._interpolation_pipe = InterpolationPipeline(**self.pipe_config_dict)
+    return self._interpolation_pipe
+  
+  @property
+  def generator(self):
+    if self.seed:
+      return torch.cuda.manual_seed(self.seed)
+    return None
 
   @classmethod
-  def create(cls,
-             pipe=None,
-             model_path: str ='CompVis/stable-diffusion-v1-4',
-             manual_seed: Optional[int] = None,
-             scheduler = None,
-             use_auth_token = False,
-             device='cuda'):
-    if manual_seed:
-      generator = torch.cuda.manual_seed(manual_seed)
-    else:
-      generator = None
-
-    if not pipe:
+  def instance(
+    cls,
+    pipe=None,
+    model_path: str ='CompVis/stable-diffusion-v1-4',
+    manual_seed: Optional[int] = None,
+    scheduler = None,
+    use_auth_token = False,
+    device='cuda',
+    safety_check=False,
+    force_create_new_pipe=False):
+    
+    if force_create_new_pipe or (not hasattr(cls, '_pipe')):
       # Create pipeline
       pipe_config = dict(
         revision="fp16",
@@ -48,52 +100,33 @@ class ImageGenerator:
 
       if scheduler == 'lms':
         scheduler = LMSDiscreteScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear", num_train_timesteps=1000)
+
+      if scheduler:
         pipe_config['scheduler'] = scheduler
 
       if use_auth_token:
         pipe_config['use_auth_token'] = use_auth_token
 
       print('Loading pipeline', pipe_config)
-      pipe = StableDiffusionPipeline.from_pretrained(model_path, **pipe_config).to('cuda')
+      cls._pipe = StableDiffusionPipeline.from_pretrained(model_path, **pipe_config).to('cuda')
       print('Pipeline loaded')
 
-    return cls(pipe=pipe, generator=generator)
+    return cls(pipe=cls._pipe, seed=manual_seed, safety_check=safety_check)
 
   def text2image(self, prompt, **kwargs):
     with torch.autocast("cuda"):
-      images = self.pipe(prompt=prompt, generator=self.generator, **kwargs).images
+      images = self.text2image_pipe(prompt=prompt, generator=self.generator, **kwargs).images
       if len(images) == 1:
         images = images[0]
       return images
     
-  def text_guided_image2image(self, prompt, init_image, redraw_strength=0.8, text_guidance_scale=7.5, **kwargs):
-    """Text guided image to image generation.
-    
-    Args:
-      init_image:  The initial image to start.
-      prompt: The text to guide the generation.
-      redraw_strength:  0-1 value indicating how hard to redraw the image. 0 means no modifications to initial image at all, while 1 means redraw from scratch
-      text_guidance_scale:  1 means no guidance. The bigger the value, the more relevant the image is to the text.
-    """
+  def text_guided_image2image(self, prompt, init_image, width=None, height=None, **kwargs):
     with torch.autocast("cuda"):
-      images = self.pipe(prompt=prompt,
-                         generator=self.generator,
-                         init_image=init_image,
-                         strength=redraw_strength,
-                         guidance_scale=text_guidance_scale,
-                         **kwargs).images
-      if len(images) == 1:
-        images = images[0]
-      return images
-  
-  def similar_image2image(self, init_image, redraw_strength=0.7, **kwargs):
-    with torch.autocast("cuda"):
-      images = self.pipe(prompt='trending on instagram',
-                         generator=self.generator,
-                         init_image=init_image,
-                         strength=redraw_strength,
-                         guidance_scale=7.5,
-                         **kwargs).images
+      images = self.image2image_pipe(
+        prompt=prompt,
+        init_image=preprocess_image(init_image, width=width, height=height),
+        generator=self.generator,
+        **kwargs).images
       if len(images) == 1:
         images = images[0]
       return images
@@ -102,33 +135,80 @@ class ImageGenerator:
                     prompt,
                     init_image,
                     mask_image,
-                    redraw_strength=0.75,
-                    text_guidance_scale=7.5,
                     **kwargs):
     with torch.autocast("cuda"):
-      images = self.pipe(prompt=prompt,
-                         generator=self.generator,
-                         init_image=init_image,
-                         mask_image=mask_image,
-                         strength=redraw_strength,
-                         guidance_scale=text_guidance_scale,
-                         **kwargs).images
+      images = self.inpaint_pipe(
+        prompt=prompt,
+        generator=self.generator,
+        init_image=preprocess_image(init_image),
+        mask_image=preprocess_image(mask_image),
+        **kwargs).images
       if len(images) == 1:
         images = images[0]
       return images
-
-  def image_interpolation(self,
-                          mixed_image: Mapping[str, Union[str, PIL.Image.Image]],
-                          width=None,
-                          height=None):
+    
+  def image_interpolation(self, **kwargs):
     with torch.autocast("cuda"):
-      latents = self.pipe.encode_mixed_image(mixed_image=mixed_image,
-                                             encode_type='sample',
-                                             generator=self.generator,
-                                             width=width,
-                                             height=height)
-      images = self.pipe.decode_latents(latents)
+      images = self.interpolation_pipe(**kwargs)
+      return images
+    
+  
 
-    if len(images) == 1:
-        images = images[0]
-    return images
+class Image2ImageGenerator:
+  def __init__(self, pipe=None, seed=None, safety_check=False):
+    # random seed for reproducibility
+    self.seed = seed
+    
+    pipe_config_keys = [
+      'vae', 'image_encoder', 'unet', 'scheduler',
+      'safety_checker', 'feature_extractor',
+    ]
+    pipe_config_dict = {
+      k: getattr(pipe, k) for k in pipe_config_keys
+    }
+    
+    if not safety_check:
+      pipe_config_dict['safety_checker'] = None
+      pipe_config_dict['feature_extractor'] = None
+      
+    self.pipe_config_dict = pipe_config_dict
+    self.pipe = StableDiffusionImageEmbedPipeline(**pipe_config_dict)
+    
+  @property
+  def generator(self):
+    if self.seed:
+      return torch.cuda.manual_seed(self.seed)
+    return None
+  
+  @classmethod
+  def instance(
+    cls,
+    model_path: str ='lambdalabs/sd-image-variations-diffusers',
+    manual_seed: Optional[int] = None,
+    scheduler = None,
+    use_auth_token = False,
+    device='cuda',
+    safety_check=False,
+    force_create_new_pipe=False):
+    if force_create_new_pipe or (not hasattr(cls, '_pipe')):
+      pipe_config = {}
+      if scheduler == 'lms':
+        scheduler = LMSDiscreteScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear", num_train_timesteps=1000)
+
+      if scheduler:
+        pipe_config['scheduler'] = scheduler
+
+      if use_auth_token:
+        pipe_config['use_auth_token'] = use_auth_token
+      
+      cls._pipe = StableDiffusionImageEmbedPipeline.from_pretrained(model_path, **pipe_config).to(device)
+    return Image2ImageGenerator(pipe=cls._pipe, seed=manual_seed, safety_check=safety_check)
+  
+  def generate_similar_image(self, image, width=512, height=512, **kwargs):
+    if isinstance(image, Mapping):
+      image = list(image.items())
+    image = preprocess_image(image, width, height)
+    results = self.pipe(image, generator=self.generator, width=width, height=height, **kwargs).images
+    if len(results) == 1:
+      results = results[0]
+    return results

@@ -69,10 +69,11 @@ extras['nlp'] = deps_list('transformers', 'spacy', 'nltk', 'sentencepiece', 'dat
 extras['google'] = deps_list('google-cloud-translate', 'google-cloud-language', 'gspread', 'gspread-dataframe')
 extras['image'] = deps_list('diffusers', 'transformers', 'ftfy', 'scipy')
 
+print(extras['image'])
 
 setup(
     name='gps-babel-tower',
-    version='0.1.1',  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version='0.1.2',  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     author='Chi Zhang',
     author_email='chii@google.com',
     description='Babel Tower NLP Library',
